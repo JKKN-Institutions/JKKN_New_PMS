@@ -15,22 +15,24 @@ export default function LabWorklistPage() {
       </div>
 
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-200">
-            <tr>
-              {["Patient", "Test", "Category", "Sample Date", "Assigned To", "Status", "Report", "Actions"].map((h) => (
-                <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td colSpan={8} className="px-4 py-12 text-center text-gray-400 text-sm">
-                No items in lab worklist. Connect DB to load.
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[600px]">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                {["Patient", "Test", "Category", "Sample Date", "Assigned To", "Status", "Report", "Actions"].map((h) => (
+                  <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colSpan={8} className="px-4 py-12 text-center text-gray-400 text-sm">
+                  No items in lab worklist. Connect DB to load.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

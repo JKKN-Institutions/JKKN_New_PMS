@@ -3,13 +3,13 @@ import { Button } from "@/components/ui/Button";
 export default function PharmacyPOSPage() {
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-gray-900 mb-6">Pharmacy POS</h1>
+      <h1 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-6">Pharmacy POS</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Cart */}
         <div className="lg:col-span-2 space-y-4">
           <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-            <div className="flex gap-3 mb-4">
+            <div className="flex flex-col sm:flex-row gap-3 mb-4">
               <input
                 type="search"
                 placeholder="Search patient (optional)…"
@@ -20,22 +20,24 @@ export default function PharmacyPOSPage() {
                 placeholder="Search drug / shelf…"
                 className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <Button size="sm">Add</Button>
+              <Button size="sm" className="sm:shrink-0">Add</Button>
             </div>
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  {["Drug", "Batch/Shelf", "Qty", "Unit Price", "Amount", ""].map((h) => (
-                    <th key={h} className="px-3 py-2 text-left text-xs font-semibold text-gray-500">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td colSpan={6} className="px-3 py-10 text-center text-gray-400 text-sm">Cart is empty</td>
-                </tr>
-              </tbody>
-            </table>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm min-w-[400px]">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    {["Drug", "Batch/Shelf", "Qty", "Unit Price", "Amount", ""].map((h) => (
+                      <th key={h} className="px-3 py-2 text-left text-xs font-semibold text-gray-500 whitespace-nowrap">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td colSpan={6} className="px-3 py-10 text-center text-gray-400 text-sm">Cart is empty</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
