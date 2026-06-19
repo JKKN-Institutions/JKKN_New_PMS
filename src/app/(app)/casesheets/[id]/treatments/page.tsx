@@ -1,0 +1,34 @@
+import { Button } from "@/components/ui/Button";
+
+export default function CaseSheetTreatmentsPage({ params }: { params: { id: string } }) {
+  return (
+    <div>
+      <a href={`/casesheets/${params.id}`} className="text-sm text-gray-500 hover:text-gray-700 mb-4 block">
+        ← Case Sheet
+      </a>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-xl font-semibold text-gray-900">Treatment Plan & Worksteps</h1>
+        <Button size="sm">+ Add Treatment</Button>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+        <table className="w-full text-sm">
+          <thead className="bg-gray-50 border-b border-gray-200">
+            <tr>
+              {["Treatment", "Tooth", "Doctor", "Units", "Type", "Status", "Worksteps"].map((h) => (
+                <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colSpan={7} className="px-4 py-12 text-center text-gray-400 text-sm">
+                No treatments planned. Add a treatment to begin.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
