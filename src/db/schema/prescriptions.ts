@@ -22,7 +22,7 @@ export const prescriptions = mysqlTable("prescriptions", {
 export const prescriptionbrands = mysqlTable("prescriptionbrands", {
   id: char("id", { length: 36 }).primaryKey(),
   name: varchar("name", { length: 255 }),
-  genericName: varchar("generic_name", { length: 255 }),
+  prescriptionlistId: char("prescriptionlist_id", { length: 36 }),
   deleted: tinyint("deleted").default(0),
 });
 

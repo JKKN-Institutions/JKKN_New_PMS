@@ -1,64 +1,105 @@
-import { PatientBanner } from "@/components/PatientBanner";
-import { RecordPage } from "@/components/RecordPage";
+import { notFound } from "next/navigation";
+import { and, eq, desc } from "drizzle-orm";
+import { getDb } from "@/db";
+import { patients, medicalhistorys, preproblems } from "@/db/schema";
+import { calcAge, fmtCurrency, fmtDate } from "@/lib/formatters";
 
-const TABS = [
-  { key: "overview", label: "Overview", href: "" },
-  { key: "casesheets", label: "Case Sheets", href: "/casesheets" },
-  { key: "appointments", label: "Appointments", href: "/appointments" },
-  { key: "treatments", label: "Treatments", href: "/treatments" },
-  { key: "prescriptions", label: "Prescriptions", href: "/prescriptions" },
-  { key: "lab", label: "Lab", href: "/lab" },
-  { key: "billing", label: "Billing", href: "/billing" },
-  { key: "media", label: "Media", href: "/media" },
-  { key: "history", label: "History", href: "/history" },
-];
+export default async function PatientOverviewPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const db = getDb();
 
-export default function PatientDetailPage({ params }: { params: { id: string } }) {
-  const mockPatient = {
-    id: params.id,
-    patNumber: "PAT-00001",
-    firstName: "Sample",
-    lastName: "Patient",
-    sex: "Male",
-    birthdate: "1990-01-01",
-    bloodGrp: "O+",
-    phoneMobile: "9999999999",
-    outstandingAmt: 0,
-  };
+  const [[p], medHistory] = await Promise.all([
+    db
+      .select()
+      .from(patients)
+      .where(and(eq(patients.id, params.id), eq(patients.deleted, 0)))
+      .limit(1),
+    db
+      .select({
+        id: medicalhistorys.id,
+        description: medicalhistorys.description,
+        problemName: preproblems.name,
+      })
+      .from(medicalhistorys)
+      .leftJoin(preproblems, eq(medicalhistorys.preproblemId, preproblems.id))
+      .where(
+        and(
+          eq(medicalhistorys.patientId, params.id),
+          eq(medicalhistorys.deleted, 0)
+        )
+      )
+      .orderBy(desc(medicalhistorys.dateEntered)),
+  ]);
 
-  const tabs = TABS.map((t) => ({
-    ...t,
-    href: `/patients/${params.id}${t.href}`,
-  }));
+  if (!p) notFound();
+
+  const fullName = [p.salutation, p.firstName, p.lastName]
+    .filter(Boolean)
+    .join(" ");
 
   return (
-    <div>
-      <div className="mb-4">
-        <a href="/patients" className="text-sm text-gray-500 hover:text-gray-700">← Patients</a>
-      </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <InfoCard title="Personal Details">
+        <Row label="Full Name" value={fullName || "—"} />
+        <Row label="Sex" value={p.sex ?? "—"} />
+        <Row label="Age" value={p.birthdate ? calcAge(p.birthdate) : "—"} />
+        <Row label="Date of Birth" value={fmtDate(p.birthdate)} />
+        <Row label="Blood Group" value={p.bloodGrp ?? "—"} />
+        <Row label="Father's Name" value={p.fatherName ?? "—"} />
+      </InfoCard>
 
-      <PatientBanner patient={mockPatient} className="mb-5" />
+      <InfoCard title="Contact">
+        <Row label="Mobile" value={p.phoneMobile ?? "—"} />
+        <Row label="Home" value={p.phoneHome ?? "—"} />
+        <Row label="Work" value={p.phoneWork ?? "—"} />
+        <Row label="Email" value={p.emailAddress ?? "—"} />
+      </InfoCard>
 
-      <RecordPage
-        humanNumber="PAT-00001"
-        title="Patient 360"
-        status="Active"
-        statusColor="green"
-        tabs={tabs}
-        activeTab="overview"
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <InfoCard title="Personal Details">
-            <Row label="Full Name" value="Sample Patient" />
-            <Row label="Sex" value="Male" />
-            <Row label="Age" value="35y" />
-            <Row label="Blood Group" value="O+" />
-          </InfoCard>
-          <InfoCard title="Contact">
-            <Row label="Mobile" value="9999999999" />
-          </InfoCard>
-        </div>
-      </RecordPage>
+      <InfoCard title="Address">
+        <Row label="Street" value={p.primaryAddressStreet ?? "—"} />
+        <Row label="Postal Code" value={p.primaryAddressPostalcode ?? "—"} />
+      </InfoCard>
+
+      <InfoCard title="Registration">
+        <Row label="Pat Number" value={p.patNumber?.toString() ?? "—"} />
+        <Row label="Reg Date" value={fmtDate(p.regDate)} />
+        <Row label="No. of Visits" value={p.noOfVisit?.toString() ?? "0"} />
+        <Row label="Outstanding" value={fmtCurrency(p.outstandingAmt)} />
+        <Row
+          label="Language"
+          value={
+            p.preferredLang === "ta"
+              ? "Tamil"
+              : p.preferredLang === "en"
+              ? "English"
+              : (p.preferredLang ?? "—")
+          }
+        />
+      </InfoCard>
+
+      {medHistory.length > 0 && (
+        <InfoCard title="Medical History">
+          <ul className="space-y-1">
+            {medHistory.map((m) => (
+              <li key={m.id} className="text-sm text-gray-700 flex items-start gap-2">
+                <span className="text-blue-500 mt-0.5">•</span>
+                <span>{m.problemName || m.description || "—"}</span>
+              </li>
+            ))}
+          </ul>
+        </InfoCard>
+      )}
+
+      {(p.membershipType || p.membershipExpiryDate) && (
+        <InfoCard title="Membership">
+          <Row label="Type" value={p.membershipType ?? "—"} />
+          <Row label="Expiry" value={fmtDate(p.membershipExpiryDate)} />
+          <Row label="Valid Till" value={fmtDate(p.validTill)} />
+        </InfoCard>
+      )}
     </div>
   );
 }
@@ -66,17 +107,19 @@ export default function PatientDetailPage({ params }: { params: { id: string } }
 function InfoCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-      <h3 className="text-sm font-semibold text-gray-700 mb-3">{title}</h3>
-      <dl className="space-y-2">{children}</dl>
+      <h3 className="text-sm font-semibold text-gray-700 mb-3 pb-2 border-b border-gray-100">
+        {title}
+      </h3>
+      <div className="space-y-2">{children}</div>
     </div>
   );
 }
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between text-sm">
-      <dt className="text-gray-500">{label}</dt>
-      <dd className="font-medium text-gray-900">{value}</dd>
+    <div className="flex justify-between text-sm gap-4">
+      <span className="text-gray-500 shrink-0">{label}</span>
+      <span className="font-medium text-gray-900 text-right">{value}</span>
     </div>
   );
 }

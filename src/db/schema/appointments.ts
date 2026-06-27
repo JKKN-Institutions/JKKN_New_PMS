@@ -1,8 +1,10 @@
-import { mysqlTable, char, varchar, tinyint, datetime, text, int } from "drizzle-orm/mysql-core";
+import { mysqlTable, char, varchar, tinyint, datetime, date, text, int, bigint } from "drizzle-orm/mysql-core";
 
 export const appointments = mysqlTable("appointments", {
   id: char("id", { length: 36 }).primaryKey(),
-  patientId: char("patient_id", { length: 36 }),
+  appNumber: bigint("app_number", { mode: "number" }),
+  parentId: char("parent_id", { length: 36 }),        // patient id
+  parentType: varchar("parent_type", { length: 25 }),
   departmentId: char("department_id", { length: 36 }),
   dateStart: datetime("date_start"),
   dateEnd: datetime("date_end"),
@@ -16,7 +18,7 @@ export const appointments = mysqlTable("appointments", {
   pgcasesheetId: char("pgcasesheet_id", { length: 36 }),
   reasonVisit: text("resaon_visit"),
   followupType: varchar("followup_type", { length: 50 }),
-  tokenNo: int("token_no"),
+  tokenNo: varchar("token_no", { length: 50 }),
   operatedById: char("operated_by_id", { length: 36 }),
   assistedById: char("assisted_by_id", { length: 36 }),
   observedById: char("observed_by_id", { length: 36 }),
@@ -32,26 +34,38 @@ export const appointments = mysqlTable("appointments", {
 export const departmentvisits = mysqlTable("departmentvisits", {
   id: char("id", { length: 36 }).primaryKey(),
   patientId: char("patient_id", { length: 36 }),
-  appointmentId: char("appointment_id", { length: 36 }),
+  parentId: char("parent_id", { length: 36 }),
+  parentType: varchar("parent_type", { length: 25 }),
   departmentId: char("department_id", { length: 36 }),
+  visitDate: datetime("visit_date"),
   nextAppointmentId: char("next_appointment_id", { length: 36 }),
   seqNo: int("seq_no"),
   deleted: tinyint("deleted").default(0),
+  dateEntered: datetime("date_entered"),
 });
 
 export const chairtokens = mysqlTable("chairtokens", {
   id: char("id", { length: 36 }).primaryKey(),
-  appointmentId: char("appointment_id", { length: 36 }),
+  parentId: char("parent_id", { length: 36 }),
+  parentType: varchar("parent_type", { length: 40 }),
   departmentId: char("department_id", { length: 36 }),
-  tokenNo: int("token_no"),
-  status: varchar("status", { length: 25 }),
+  chairId: char("chair_id", { length: 36 }),
+  tokenNo: varchar("token_no", { length: 30 }),
+  tokenSerial: int("token_serial"),
+  tokenDate: date("token_date"),
+  status: varchar("status", { length: 20 }),
   deleted: tinyint("deleted").default(0),
+  dateEntered: datetime("date_entered"),
 });
 
 export const callpatientdetails = mysqlTable("callpatientdetails", {
   id: char("id", { length: 36 }).primaryKey(),
-  appointmentId: char("appointment_id", { length: 36 }),
-  calledAt: datetime("called_at"),
-  calledBy: char("called_by", { length: 36 }),
+  patientId: char("patient_id", { length: 36 }),
+  callpolicyId: char("callpolicy_id", { length: 36 }),
+  departmentId: char("department_id", { length: 36 }),
+  callDate: date("call_date"),
+  communication: text("communication"),
+  status: varchar("status", { length: 50 }),
   deleted: tinyint("deleted").default(0),
+  dateEntered: datetime("date_entered"),
 });

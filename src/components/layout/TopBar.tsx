@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { logoutAction } from "@/app/actions/auth";
 
 interface TopBarProps {
   onMenuToggle: () => void;
@@ -50,13 +51,17 @@ export function TopBar({ onMenuToggle }: TopBarProps) {
           <span className="absolute top-0.5 right-0.5 w-2 h-2 bg-red-500 rounded-full" />
         </button>
 
-        {/* User menu */}
-        <button className="flex items-center gap-2 text-sm text-gray-700 hover:text-gray-900">
+        {/* User menu + logout */}
+        <div className="flex items-center gap-2">
           <span className="w-7 h-7 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center text-xs font-bold">
             U
           </span>
-          <span className="hidden md:inline">User</span>
-        </button>
+          <form action={logoutAction}>
+            <button type="submit" className="hidden md:inline text-xs text-gray-500 hover:text-red-600 transition-colors">
+              Logout
+            </button>
+          </form>
+        </div>
       </div>
     </header>
   );

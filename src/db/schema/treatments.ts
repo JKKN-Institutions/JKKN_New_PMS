@@ -1,4 +1,4 @@
-import { mysqlTable, char, varchar, tinyint, datetime, date, decimal, int, text } from "drizzle-orm/mysql-core";
+import { mysqlTable, char, varchar, tinyint, datetime, date, decimal, int } from "drizzle-orm/mysql-core";
 
 export const treatments = mysqlTable("treatments", {
   id: char("id", { length: 36 }).primaryKey(),
@@ -40,16 +40,44 @@ export const approveworksteps = mysqlTable("approveworksteps", {
   requestedById: char("requested_by_id", { length: 36 }),
   approvedById: char("approved_by_id", { length: 36 }),
   casesheetId: char("casesheet_id", { length: 36 }),
+  departmentId: varchar("department_id", { length: 36 }),
   status: varchar("status", { length: 25 }),
-  remark: text("remark"),
+  requestDate: datetime("request_date"),
+  approvedDate: datetime("approved_date"),
   deleted: tinyint("deleted").default(0),
+  createdBy: char("created_by", { length: 36 }),
   dateEntered: datetime("date_entered"),
   dateModified: datetime("date_modified"),
+});
+
+export const treatmentgroups = mysqlTable("treatmentgroups", {
+  id: char("id", { length: 36 }).primaryKey(),
+  name: varchar("name", { length: 255 }),
+  deleted: tinyint("deleted").default(0),
 });
 
 export const treatmentlists = mysqlTable("treatmentlists", {
   id: char("id", { length: 36 }).primaryKey(),
   name: varchar("name", { length: 255 }),
-  treatmentgroupId: char("treatmentgroup_id", { length: 36 }),
+  departmentId: char("department_id", { length: 36 }),
+  billabletreatmentsetupsId: char("billabletreatmentsetups_id", { length: 36 }),
+  units: tinyint("units"),
+  status: varchar("status", { length: 50 }),
+  duration: int("duration"),
   deleted: tinyint("deleted").default(0),
+  dateEntered: datetime("date_entered"),
+  dateModified: datetime("date_modified"),
+});
+
+export const worksteplists = mysqlTable("worksteplists", {
+  id: char("id", { length: 36 }).primaryKey(),
+  name: varchar("name", { length: 150 }),
+  seqNo: int("seq_no"),
+  status: varchar("status", { length: 25 }),
+  approvalRequired: tinyint("approval_required").default(0),
+  referDeptId: char("refer_dept_id", { length: 36 }),
+  noOfDays: int("no_of_days"),
+  deleted: tinyint("deleted").default(0),
+  dateEntered: datetime("date_entered"),
+  dateModified: datetime("date_modified"),
 });
