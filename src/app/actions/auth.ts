@@ -12,12 +12,23 @@ export async function loginAction(_prev: string | null, formData: FormData) {
 
   if (!username || !password) return "Username and password are required.";
 
-  const db = getDb();
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(and(eq(users.userName, username), eq(users.deleted, 0)))
-    .limit(1);
+  let db;
+  try {
+    db = getDb();
+  } catch {
+    return "Database not configured. Contact your administrator.";
+  }
+
+  let user;
+  try {
+    [user] = await db
+      .select()
+      .from(users)
+      .where(and(eq(users.userName, username), eq(users.deleted, 0)))
+      .limit(1);
+  } catch {
+    return "Unable to connect to the database. Please try again later.";
+  }
 
   if (!user) return "Invalid username or password.";
   if (user.status === "Inactive") return "Your account is inactive.";

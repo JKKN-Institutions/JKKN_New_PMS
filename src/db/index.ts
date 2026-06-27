@@ -18,6 +18,9 @@ function createDb() {
     user: process.env.DB_USER,
     password: process.env.DB_PASSWORD ?? "",
     database: process.env.DB_NAME,
+    connectTimeout: 8000,
+    waitForConnections: true,
+    connectionLimit: 5,
   });
   return drizzle(pool, { schema, mode: "default" });
 }
