@@ -25,7 +25,7 @@ export function TopBar({ onMenuToggle }: TopBarProps) {
       </button>
 
       <Link href="/dashboard" className="font-bold text-blue-700 text-sm whitespace-nowrap shrink-0">
-        ORION PMS
+        JKKN PMS
       </Link>
 
       {/* Global patient search */}
