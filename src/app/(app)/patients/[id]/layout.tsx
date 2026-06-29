@@ -26,10 +26,6 @@ export default async function PatientIdLayout({
       birthdate: patients.birthdate,
       bloodGrp: patients.bloodGrp,
       phoneMobile: patients.phoneMobile,
-      outstandingAmt: patients.outstandingAmt,
-      membershipType: patients.membershipType,
-      membershipExpiryDate: patients.membershipExpiryDate,
-      vipPatient: patients.vipPatient,
       status: patients.status,
     })
     .from(patients)
@@ -66,10 +62,6 @@ export default async function PatientIdLayout({
           birthdate: p.birthdate,
           bloodGrp: p.bloodGrp,
           phoneMobile: p.phoneMobile,
-          outstandingAmt: p.outstandingAmt,
-          membershipType: p.membershipType,
-          membershipExpiryDate: p.membershipExpiryDate,
-          vipPatient: p.vipPatient,
         }}
         className="mb-5"
       />
