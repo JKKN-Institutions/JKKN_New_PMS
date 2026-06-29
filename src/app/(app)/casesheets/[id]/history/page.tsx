@@ -1,7 +1,7 @@
 import { and, eq, desc } from "drizzle-orm";
 import { notFound } from "next/navigation";
 import { getDb } from "@/db";
-import { casesheets, treatments, treatmentlists, users, patients } from "@/db/schema";
+import { casesheets, medicalhistorys, preproblems, patients } from "@/db/schema";
 import { PatientBanner } from "@/components/PatientBanner";
 import { RecordPage } from "@/components/RecordPage";
 import { fmtDate } from "@/lib/formatters";
@@ -19,14 +19,7 @@ const TABS = [
   { key: "billing", label: "Billing", href: "/billing" },
 ];
 
-const statusBadge: Record<string, string> = {
-  Completed: "bg-green-100 text-green-700",
-  Planned: "bg-blue-100 text-blue-700",
-  "In Progress": "bg-yellow-100 text-yellow-700",
-  Cancelled: "bg-red-100 text-red-700",
-};
-
-export default async function TreatmentsPage({ params }: { params: { id: string } }) {
+export default async function HistoryPage({ params }: { params: { id: string } }) {
   const db = getDb();
 
   const [sheet] = await db
@@ -55,22 +48,16 @@ export default async function TreatmentsPage({ params }: { params: { id: string 
 
   const rows = await db
     .select({
-      id: treatments.id,
-      toothNo: treatments.toothNo,
-      units: treatments.units,
-      status: treatments.status,
-      treatmentStartdate: treatments.treatmentStartdate,
-      treatmentEnddate: treatments.treatmentEnddate,
-      dateEntered: treatments.dateEntered,
-      treatmentName: treatmentlists.name,
-      doctorFirstName: users.firstName,
-      doctorLastName: users.lastName,
+      id: medicalhistorys.id,
+      description: medicalhistorys.description,
+      medicalhistoryDate: medicalhistorys.medicalhistoryDate,
+      dateEntered: medicalhistorys.dateEntered,
+      preproblemName: preproblems.name,
     })
-    .from(treatments)
-    .leftJoin(treatmentlists, eq(treatments.treatmentlistId, treatmentlists.id))
-    .leftJoin(users, eq(treatments.treatingDoctor, users.id))
-    .where(and(eq(treatments.parentId, params.id), eq(treatments.deleted, 0)))
-    .orderBy(desc(treatments.dateEntered));
+    .from(medicalhistorys)
+    .leftJoin(preproblems, eq(medicalhistorys.preproblemId, preproblems.id))
+    .where(and(eq(medicalhistorys.parentId, params.id), eq(medicalhistorys.deleted, 0)))
+    .orderBy(desc(medicalhistorys.dateEntered));
 
   const tabs = TABS.map((t) => ({ ...t, href: `/casesheets/${params.id}${t.href}` }));
   const statusColor =
@@ -85,61 +72,37 @@ export default async function TreatmentsPage({ params }: { params: { id: string 
         status={sheet.status ?? "Open"}
         statusColor={statusColor as "green" | "gray" | "yellow"}
         tabs={tabs}
-        activeTab="treatments"
+        activeTab="history"
       >
         <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold text-gray-700">
-              Treatments{" "}
+              Medical History{" "}
               <span className="font-normal text-gray-400">({rows.length})</span>
             </h3>
           </div>
           {rows.length === 0 ? (
-            <EmptyState message="No treatments recorded." />
+            <EmptyState message="No medical history recorded." />
           ) : (
             <div className="overflow-x-auto rounded-xl border border-gray-200">
               <table className="min-w-full divide-y divide-gray-200 text-sm">
                 <thead className="bg-gray-50">
                   <tr>
-                    <Th>Treatment</Th>
-                    <Th>Tooth</Th>
-                    <Th>Units</Th>
-                    <Th>Start Date</Th>
-                    <Th>End Date</Th>
-                    <Th>Status</Th>
-                    <Th>Doctor</Th>
+                    <Th>Condition / Problem</Th>
+                    <Th>Description</Th>
+                    <Th>History Date</Th>
+                    <Th>Entered</Th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 bg-white">
-                  {rows.map((r) => {
-                    const badgeCls =
-                      statusBadge[r.status ?? ""] ?? "bg-gray-100 text-gray-600";
-                    const doctor =
-                      r.doctorFirstName || r.doctorLastName
-                        ? [r.doctorFirstName, r.doctorLastName].filter(Boolean).join(" ")
-                        : "—";
-                    return (
-                      <tr key={r.id} className="hover:bg-gray-50">
-                        <Td>{r.treatmentName ?? "—"}</Td>
-                        <Td>{r.toothNo ?? "—"}</Td>
-                        <Td>{r.units ?? "—"}</Td>
-                        <Td>{fmtDate(r.treatmentStartdate)}</Td>
-                        <Td>{fmtDate(r.treatmentEnddate)}</Td>
-                        <td className="px-4 py-3 whitespace-nowrap">
-                          {r.status ? (
-                            <span
-                              className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${badgeCls}`}
-                            >
-                              {r.status}
-                            </span>
-                          ) : (
-                            <span className="text-gray-400">—</span>
-                          )}
-                        </td>
-                        <Td>{doctor}</Td>
-                      </tr>
-                    );
-                  })}
+                  {rows.map((r) => (
+                    <tr key={r.id} className="hover:bg-gray-50">
+                      <Td>{r.preproblemName ?? "—"}</Td>
+                      <Td>{r.description ?? "—"}</Td>
+                      <Td>{fmtDate(r.medicalhistoryDate)}</Td>
+                      <Td>{fmtDate(r.dateEntered)}</Td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>

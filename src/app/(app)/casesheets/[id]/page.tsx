@@ -1,5 +1,10 @@
-import { PatientBanner, type PatientBannerData } from "@/components/PatientBanner";
+import { and, eq, desc } from "drizzle-orm";
+import { notFound } from "next/navigation";
+import { getDb } from "@/db";
+import { casesheets, complaints, complaintlists, patients } from "@/db/schema";
+import { PatientBanner } from "@/components/PatientBanner";
 import { RecordPage } from "@/components/RecordPage";
+import { fmtDate } from "@/lib/formatters";
 
 const TABS = [
   { key: "complaint", label: "Chief Complaint", href: "" },
@@ -14,50 +19,123 @@ const TABS = [
   { key: "billing", label: "Billing", href: "/billing" },
 ];
 
-const mockPatient: PatientBannerData = {
-  id: "mock",
-  patNumber: "PAT-00001",
-  firstName: "Sample",
-  lastName: "Patient",
-  sex: "Male",
-  birthdate: "1990-01-01",
-  bloodGrp: "O+",
-  phoneMobile: "9999999999",
-  outstandingAmt: 0,
-};
+export default async function CaseSheetPage({ params }: { params: { id: string } }) {
+  const db = getDb();
 
-export default function CaseSheetPage({ params }: { params: { id: string } }) {
-  const tabs = TABS.map((t) => ({
-    ...t,
-    href: `/casesheets/${params.id}${t.href}`,
-  }));
+  const [sheet] = await db
+    .select()
+    .from(casesheets)
+    .where(and(eq(casesheets.id, params.id), eq(casesheets.deleted, 0)))
+    .limit(1);
+
+  if (!sheet) notFound();
+
+  const [patient] = await db
+    .select({
+      id: patients.id,
+      patNumber: patients.patNumber,
+      firstName: patients.firstName,
+      lastName: patients.lastName,
+      sex: patients.sex,
+      birthdate: patients.birthdate,
+      bloodGrp: patients.bloodGrp,
+      phoneMobile: patients.phoneMobile,
+      outstandingAmt: patients.outstandingAmt,
+    })
+    .from(patients)
+    .where(eq(patients.id, sheet.patientId!))
+    .limit(1);
+
+  const rows = await db
+    .select({
+      id: complaints.id,
+      toothNo: complaints.toothNo,
+      description: complaints.description,
+      dateEntered: complaints.dateEntered,
+      complaintName: complaintlists.name,
+    })
+    .from(complaints)
+    .leftJoin(complaintlists, eq(complaints.complaintlistId, complaintlists.id))
+    .where(and(eq(complaints.parentId, params.id), eq(complaints.deleted, 0)))
+    .orderBy(desc(complaints.dateEntered));
+
+  const tabs = TABS.map((t) => ({ ...t, href: `/casesheets/${params.id}${t.href}` }));
+  const statusColor =
+    sheet.status === "Open" ? "green" : sheet.status === "Closed" ? "gray" : "yellow";
 
   return (
     <div>
-      <PatientBanner patient={mockPatient} className="mb-5" />
-
+      {patient && <PatientBanner patient={patient} className="mb-5" />}
       <RecordPage
-        humanNumber={`CS-${params.id.slice(0, 8)}`}
+        humanNumber={`CS-${sheet.caseNumber ?? params.id.slice(0, 8)}`}
         title="Case Sheet"
-        status="Open"
-        statusColor="green"
+        status={sheet.status ?? "Open"}
+        statusColor={statusColor as "green" | "gray" | "yellow"}
         tabs={tabs}
         activeTab="complaint"
         actions={
-          <button className="text-xs border border-gray-300 px-3 py-1.5 rounded-lg text-gray-600 hover:bg-gray-50">
-            Close Case Sheet
-          </button>
+          sheet.status !== "Closed" ? (
+            <button className="text-xs border border-gray-300 px-3 py-1.5 rounded-lg text-gray-600 hover:bg-gray-50">
+              Close Case Sheet
+            </button>
+          ) : null
         }
       >
-        {/* Chief Complaint tab content */}
         <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-gray-700">Chief Complaints</h3>
-            <button className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg">+ Add Complaint</button>
+            <h3 className="text-sm font-semibold text-gray-700">
+              Chief Complaints{" "}
+              <span className="font-normal text-gray-400">({rows.length})</span>
+            </h3>
           </div>
-          <p className="text-sm text-gray-400 text-center py-8">No complaints recorded. Connect DB to load.</p>
+          {rows.length === 0 ? (
+            <EmptyState message="No complaints recorded." />
+          ) : (
+            <div className="overflow-x-auto rounded-xl border border-gray-200">
+              <table className="min-w-full divide-y divide-gray-200 text-sm">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <Th>Complaint</Th>
+                    <Th>Tooth</Th>
+                    <Th>Description</Th>
+                    <Th>Date</Th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 bg-white">
+                  {rows.map((r) => (
+                    <tr key={r.id} className="hover:bg-gray-50">
+                      <Td>{r.complaintName ?? "—"}</Td>
+                      <Td>{r.toothNo ?? "—"}</Td>
+                      <Td>{r.description ?? "—"}</Td>
+                      <Td>{fmtDate(r.dateEntered)}</Td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </RecordPage>
     </div>
   );
+}
+
+function EmptyState({ message }: { message: string }) {
+  return (
+    <div className="rounded-xl border border-dashed border-gray-200 py-16 text-center text-sm text-gray-400">
+      {message}
+    </div>
+  );
+}
+
+function Th({ children }: { children: React.ReactNode }) {
+  return (
+    <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">
+      {children}
+    </th>
+  );
+}
+
+function Td({ children }: { children: React.ReactNode }) {
+  return <td className="px-4 py-3 whitespace-nowrap text-gray-700">{children}</td>;
 }

@@ -4,7 +4,7 @@ import { calcAge, fmtCurrency, fullName } from "@/lib/formatters";
 
 export interface PatientBannerData {
   id: string;
-  patNumber: string | null;
+  patNumber: number | string | null;
   salutation?: string | null;
   firstName?: string | null;
   lastName?: string | null;
