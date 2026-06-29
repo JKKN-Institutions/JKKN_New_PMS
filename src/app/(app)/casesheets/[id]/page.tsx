@@ -5,6 +5,7 @@ import { casesheets, complaints, complaintlists, patients } from "@/db/schema";
 import { PatientBanner } from "@/components/PatientBanner";
 import { RecordPage } from "@/components/RecordPage";
 import { fmtDate } from "@/lib/formatters";
+import { closeCasesheetAction } from "@/app/actions/casesheets";
 
 const TABS = [
   { key: "complaint", label: "Chief Complaint", href: "" },
@@ -75,9 +76,11 @@ export default async function CaseSheetPage({ params }: { params: { id: string }
         activeTab="complaint"
         actions={
           sheet.status !== "Closed" ? (
-            <button className="text-xs border border-gray-300 px-3 py-1.5 rounded-lg text-gray-600 hover:bg-gray-50">
-              Close Case Sheet
-            </button>
+            <form action={closeCasesheetAction.bind(null, params.id)}>
+              <button type="submit" className="text-xs border border-gray-300 px-3 py-1.5 rounded-lg text-gray-600 hover:bg-gray-50">
+                Close Case Sheet
+              </button>
+            </form>
           ) : null
         }
       >

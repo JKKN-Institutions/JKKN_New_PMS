@@ -75,6 +75,12 @@ export default async function PatientCasesheetsPage({
         <h2 className="text-sm font-semibold text-gray-700">
           Case Sheets <span className="font-normal text-gray-400">({total})</span>
         </h2>
+        <a
+          href={`/patients/${params.id}/casesheets/new`}
+          className="text-xs bg-blue-600 text-white px-3 py-1.5 rounded-lg hover:bg-blue-700"
+        >
+          + New Case Sheet
+        </a>
       </div>
 
       {rows.length === 0 ? (
@@ -91,6 +97,7 @@ export default async function PatientCasesheetsPage({
                   <Th>Treatment</Th>
                   <Th>Date</Th>
                   <Th>Status</Th>
+                  <Th></Th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 bg-white">
@@ -98,13 +105,21 @@ export default async function PatientCasesheetsPage({
                   const cComplaints = complaintsByCasesheet[r.id] ?? [];
                   return (
                     <>
-                      <tr key={r.id} className="hover:bg-gray-50">
+                      <tr key={r.id} className="hover:bg-gray-50 cursor-pointer">
                         <Td mono>{r.caseNumber?.toString() ?? "—"}</Td>
                         <Td>{r.deptName ?? "—"}</Td>
                         <Td>{r.casesheetType ?? "—"}</Td>
                         <Td>{r.treatmentType ?? "—"}</Td>
                         <Td>{fmtDate(r.casesheetDate)}</Td>
                         <Td><StatusBadge status={r.status} /></Td>
+                        <Td>
+                          <a
+                            href={`/casesheets/${r.id}`}
+                            className="text-xs text-blue-600 hover:underline"
+                          >
+                            Open →
+                          </a>
+                        </Td>
                       </tr>
                       {cComplaints.length > 0 && (
                         <tr key={`${r.id}-c`} className="bg-blue-50">
@@ -140,7 +155,7 @@ function EmptyState({ message }: { message: string }) {
   return <div className="rounded-xl border border-dashed border-gray-200 py-16 text-center text-sm text-gray-400">{message}</div>;
 }
 
-function Th({ children }: { children: React.ReactNode }) {
+function Th({ children }: { children?: React.ReactNode }) {
   return <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">{children}</th>;
 }
 
