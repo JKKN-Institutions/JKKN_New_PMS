@@ -1,9 +1,16 @@
 import { AppShell } from "@/components/layout/AppShell";
+import { getSession } from "@/lib/auth";
 
-// Force all authenticated app pages to render dynamically at request time.
-// Prevents Next.js from prerendering DB-dependent pages at build time.
 export const dynamic = "force-dynamic";
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
-  return <AppShell>{children}</AppShell>;
+export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  const session = await getSession();
+  return (
+    <AppShell
+      userName={[session?.firstName, session?.lastName].filter(Boolean).join(" ") || session?.userName || "User"}
+      isAdmin={session?.isAdmin ?? false}
+    >
+      {children}
+    </AppShell>
+  );
 }
