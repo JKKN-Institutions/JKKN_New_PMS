@@ -5,7 +5,7 @@ import { casesheets, complaints, complaintlists, patients } from "@/db/schema";
 import { PatientBanner } from "@/components/PatientBanner";
 import { RecordPage } from "@/components/RecordPage";
 import { fmtDate } from "@/lib/formatters";
-import { closeCasesheetAction } from "@/app/actions/casesheets";
+import { closeCasesheetAction, reopenCasesheetAction } from "@/app/actions/casesheets";
 
 const TABS = [
   { key: "complaint", label: "Chief Complaint", href: "" },
@@ -66,6 +66,16 @@ export default async function CaseSheetPage({ params }: { params: { id: string }
 
   return (
     <div>
+      <div className="flex items-center justify-between mb-4">
+        <a href="/casesheets" className="text-sm text-gray-500 hover:text-gray-700">
+          ← Case Sheets
+        </a>
+        {patient && (
+          <a href={`/patients/${patient.id}/casesheets`} className="text-xs text-gray-400 hover:text-gray-600">
+            View in Patient Record →
+          </a>
+        )}
+      </div>
       {patient && <PatientBanner patient={patient} className="mb-5" />}
       <RecordPage
         humanNumber={`CS-${sheet.caseNumber ?? params.id.slice(0, 8)}`}
@@ -75,13 +85,19 @@ export default async function CaseSheetPage({ params }: { params: { id: string }
         tabs={tabs}
         activeTab="complaint"
         actions={
-          sheet.status !== "Closed" ? (
+          sheet.status === "Closed" ? (
+            <form action={reopenCasesheetAction.bind(null, params.id)}>
+              <button type="submit" className="text-xs border border-green-400 text-green-700 px-3 py-1.5 rounded-lg hover:bg-green-50">
+                Reopen Case Sheet
+              </button>
+            </form>
+          ) : (
             <form action={closeCasesheetAction.bind(null, params.id)}>
               <button type="submit" className="text-xs border border-gray-300 px-3 py-1.5 rounded-lg text-gray-600 hover:bg-gray-50">
                 Close Case Sheet
               </button>
             </form>
-          ) : null
+          )
         }
       >
         <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">

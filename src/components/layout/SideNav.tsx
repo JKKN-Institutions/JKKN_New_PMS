@@ -18,6 +18,7 @@ const NAV_GROUPS = [
   {
     label: "Case Work",
     items: [
+      { href: "/casesheets", label: "Case Sheets" },
       { href: "/worklist", label: "My Worklist" },
       { href: "/approvals", label: "Approvals" },
     ],

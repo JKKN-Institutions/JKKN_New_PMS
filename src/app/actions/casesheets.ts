@@ -96,6 +96,26 @@ export async function closeCasesheetAction(id: string): Promise<void> {
   revalidatePath(`/casesheets/${id}`);
 }
 
+export async function reopenCasesheetAction(id: string): Promise<void> {
+  const session = await getSession();
+  if (!session) redirect("/login");
+
+  const db = getDb();
+  const now = new Date();
+
+  await db
+    .update(casesheets)
+    .set({
+      status: "Open",
+      closedDate: null,
+      modifiedUserId: session.id,
+      dateModified: now,
+    })
+    .where(and(eq(casesheets.id, id), eq(casesheets.deleted, 0)));
+
+  revalidatePath(`/casesheets/${id}`);
+}
+
 // ── Complaints ───────────────────────────────────────────────────────────────
 
 export async function addComplaintAction(
