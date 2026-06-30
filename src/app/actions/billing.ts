@@ -126,7 +126,7 @@ export async function recordPaymentAction(
     id,
     billParentId,
     paysummaryId,
-    amount: parseFloat(amountRaw),
+    amount: amountRaw,
     paymentMode: pick(formData, "payment_mode"),
     chequeNo: pick(formData, "cheque_no"),
     chequeDate: chequeDate && !isNaN(chequeDate.getTime()) ? chequeDate : null,
