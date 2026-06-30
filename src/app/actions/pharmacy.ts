@@ -1,6 +1,6 @@
 "use server";
 
-import { eq, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { randomUUID } from "crypto";

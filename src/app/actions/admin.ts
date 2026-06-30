@@ -35,12 +35,6 @@ function pick(fd: FormData, key: string): string | null {
   return v || null;
 }
 
-function pickDate(fd: FormData, key: string): Date | null {
-  const v = pick(fd, key);
-  if (!v) return null;
-  const d = new Date(v);
-  return isNaN(d.getTime()) ? null : d;
-}
 
 // ── Departments ──────────────────────────────────────────────────────────────
 

@@ -119,8 +119,6 @@ export async function recordPaymentAction(
   const db = getDb();
   const id = randomUUID();
   const now = new Date();
-  const amount = parseFloat(amountRaw);
-
   const chequeDateRaw = pick(formData, "cheque_date");
   const chequeDate = chequeDateRaw ? new Date(chequeDateRaw) : null;
 
@@ -128,7 +126,7 @@ export async function recordPaymentAction(
     id,
     billParentId,
     paysummaryId,
-    amount: amountRaw,
+    amount: parseFloat(amountRaw),
     paymentMode: pick(formData, "payment_mode"),
     chequeNo: pick(formData, "cheque_no"),
     chequeDate: chequeDate && !isNaN(chequeDate.getTime()) ? chequeDate : null,
